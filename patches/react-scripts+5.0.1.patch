@@ -1,0 +1,57 @@
+diff --git a/node_modules/react-scripts/config/paths.js b/node_modules/react-scripts/config/paths.js
+index f4470a0..085bfb5 100644
+--- a/node_modules/react-scripts/config/paths.js
++++ b/node_modules/react-scripts/config/paths.js
+@@ -70,6 +70,7 @@ module.exports = {
+   appSrc: resolveApp('src'),
+   appTsConfig: resolveApp('tsconfig.json'),
+   appJsConfig: resolveApp('jsconfig.json'),
++  appMfConfig: resolveApp('modulefederation.config.js'),
+   yarnLockFile: resolveApp('yarn.lock'),
+   testsSetup: resolveModule(resolveApp, 'src/setupTests'),
+   proxySetup: resolveApp('src/setupProxy.js'),
+@@ -95,6 +96,7 @@ module.exports = {
+   appSrc: resolveApp('src'),
+   appTsConfig: resolveApp('tsconfig.json'),
+   appJsConfig: resolveApp('jsconfig.json'),
++  appMfConfig: resolveApp('modulefederation.config.js'),
+   yarnLockFile: resolveApp('yarn.lock'),
+   testsSetup: resolveModule(resolveApp, 'src/setupTests'),
+   proxySetup: resolveApp('src/setupProxy.js'),
+@@ -133,6 +135,7 @@ if (
+     appSrc: resolveOwn(`${templatePath}/src`),
+     appTsConfig: resolveOwn(`${templatePath}/tsconfig.json`),
+     appJsConfig: resolveOwn(`${templatePath}/jsconfig.json`),
++    appMfConfig: resolveOwn(`${templatePath}/modulefederation.config.js`),
+     yarnLockFile: resolveOwn(`${templatePath}/yarn.lock`),
+     testsSetup: resolveModule(resolveOwn, `${templatePath}/src/setupTests`),
+     proxySetup: resolveOwn(`${templatePath}/src/setupProxy.js`),
+diff --git a/node_modules/react-scripts/config/webpack.config.js b/node_modules/react-scripts/config/webpack.config.js
+index e465d8e..54c6186 100644
+--- a/node_modules/react-scripts/config/webpack.config.js
++++ b/node_modules/react-scripts/config/webpack.config.js
+@@ -33,6 +33,7 @@ const ForkTsCheckerWebpackPlugin =
+     ? require('react-dev-utils/ForkTsCheckerWarningWebpackPlugin')
+     : require('react-dev-utils/ForkTsCheckerWebpackPlugin');
+ const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
++const { ModuleFederationPlugin } = require('webpack').container;
+ // @remove-on-eject-begin
+ const getCacheIdentifier = require('react-dev-utils/getCacheIdentifier');
+ // @remove-on-eject-end
+@@ -229,7 +230,7 @@ module.exports = function (webpackEnv) {
+       // webpack uses `publicPath` to determine where the app is being served from.
+       // It requires a trailing slash, or the file assets will get an incorrect path.
+       // We inferred the "public path" (such as / or /my-project) from homepage.
+-      publicPath: paths.publicUrlOrPath,
++      publicPath: fs.existsSync(paths.appMfConfig)?'auto':paths.publicUrlOrPath,
+       // Point sourcemap entries to original disk location (format as URL on Windows)
+       devtoolModuleFilenameTemplate: isEnvProduction
+         ? info =>
+@@ -788,6 +789,7 @@ module.exports = function (webpackEnv) {
+             },
+           },
+         }),
++        fs.existsSync(paths.appMfConfig) && new ModuleFederationPlugin(require(paths.appMfConfig))
+     ].filter(Boolean),
+     // Turn off performance processing because we utilize
+     // our own hints via the FileSizeReporter
